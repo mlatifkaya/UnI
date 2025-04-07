@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -12,17 +13,21 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private KeyCode _jumpKey;
     [SerializeField] private float _jumpForce = 5f;
     [SerializeField] private float _jumpCooldown = 0.5f;
+    [SerializeField] private float _airMultiplier = 0.4f;
+    [SerializeField] private float _airdrag = 0.05f;
 
     [Header("Ground Settings")]
     [SerializeField] private float _playerHeight = 2f;
     [SerializeField] private LayerMask _groundLayer;
     [SerializeField] private float _groundDrag;
+    // [SerializeField] private float _groundMultiplier = 1f;
 
     [Header("Sliding Settings")]
     [SerializeField] private KeyCode _slideKey = KeyCode.Q;
     [SerializeField] private float _slideMultiplier = 1.5f;
     [SerializeField] private float _slideDrag;
 
+    private StateController _stateController;
     private Rigidbody _playerRigidbody;
     private Vector3 _movementDirection;
     private float _horizontalInput, _verticalInput;
@@ -31,20 +36,19 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        _stateController = GetComponent<StateController>();
         _playerRigidbody = GetComponent<Rigidbody>();
-        if (_playerRigidbody == null)
-        {
-            Debug.LogError("Rigidbody component is missing from the Player GameObject.");
-        }
         _playerRigidbody.freezeRotation = true;
+
     }
 
     private void Update()
     {
         SetInputs();
+        SetStates();
+        SetPlayerDrag();
         LimitPlayerSpeed();
-
-        CheckSliding();
+        CheckSliding(); // gerekli mi? // Evet, çünkü slide modunu kontrol ediyor
     }
 
     private void FixedUpdate()
@@ -57,19 +61,64 @@ public class PlayerController : MonoBehaviour
     {
         _horizontalInput = Input.GetAxisRaw("Horizontal");
         _verticalInput = Input.GetAxisRaw("Vertical");
-
+        _movementDirection = _orientationTransform.forward * _verticalInput + _orientationTransform.right * _horizontalInput;
+    /*
         if (_orientationTransform == null)
         {
-            Debug.LogError("Orientation Transform is not assigned in the Inspector.");
+            Debug.LogError("Orientation Transform is not assigned in the inspector.");
             return;
         }
+*/
+    }
 
-        _movementDirection = _orientationTransform.forward * _verticalInput + _orientationTransform.right * _horizontalInput;
+    private void SetStates()
+    {
+        var movementDirection = GetMovementDirection();
+        var isGrounded = IsGrounded();
+        var currentState = _stateController.GetCurrentPlayerState();
+
+        var newState = currentState switch
+        {
+            _ when movementDirection == Vector3.zero && isGrounded && !_isSlideModeActive => PlayerState.Idle,
+            _ when movementDirection != Vector3.zero && isGrounded && !_isSlideModeActive => PlayerState.Move,
+            _ when movementDirection == Vector3.zero && isGrounded && _isSlideModeActive => PlayerState.SlideIdle,
+            _ when movementDirection != Vector3.zero && isGrounded && _isSlideModeActive => PlayerState.Slide,
+            _ when !_canJump && !isGrounded => PlayerState.Jump,
+            _ => currentState            
+        };
+
+        if(newState != currentState)
+        {
+            _stateController.ChangeState(newState);
+        }
     }
 
     private void SetPlayerMovement()
     {
-        if (_movementDirection.magnitude > 0) // WASD ile hareket varsa
+
+       if (_movementDirection.magnitude > 0) // WASD ile hareket varsa
+        {
+            float currentSpeed = _stateController.GetCurrentPlayerState() switch
+            {
+                // Slide durumunda ve yerdeyken slideMultiplier uygulanır
+                PlayerState.Slide when IsGrounded() => _movementSpeed * _slideMultiplier,
+                // Diğer durumlarda normal hız kullanılır
+                _ => _movementSpeed
+            };
+
+            Vector3 moveVelocity = _movementDirection.normalized * currentSpeed;
+            moveVelocity.y = _playerRigidbody.linearVelocity.y; // Y eksenindeki mevcut hızı koru
+            _playerRigidbody.linearVelocity = moveVelocity;
+        }
+        else
+        {
+            // Hareket inputu yoksa yatay hızı sıfırla
+            Vector3 currentVelocity = _playerRigidbody.linearVelocity;
+            _playerRigidbody.linearVelocity = new Vector3(0, currentVelocity.y, 0);
+        }
+
+
+       /* if (_movementDirection.magnitude > 0) // WASD ile hareket varsa
         {
             // Slide sadece yerdeyken ve slide modu aktifken çalışır
             float currentSpeed = (_isSlideModeActive && IsGrounded()) ? _movementSpeed * _slideMultiplier : _movementSpeed;
@@ -83,10 +132,21 @@ public class PlayerController : MonoBehaviour
             // Hareket inputu yoksa yatay hızı sıfırla
             _playerRigidbody.linearVelocity = new Vector3(0, _playerRigidbody.linearVelocity.y, 0);
         }
+        */
+
     }
 
     private void SetPlayerDrag()
     {
+
+        _playerRigidbody.linearDamping = _stateController.GetCurrentPlayerState() switch
+        {
+            PlayerState.Move => _groundDrag,
+            PlayerState.Slide => _slideDrag,
+            PlayerState.Jump => _airdrag,
+            _ => _playerRigidbody.linearDamping
+        };
+        /*
         if(_isSlideModeActive)
         {
             _playerRigidbody.linearDamping = _slideDrag; 
@@ -95,7 +155,7 @@ public class PlayerController : MonoBehaviour
         {
             _playerRigidbody.linearDamping = _groundDrag;
         }
-
+        */
     }
 
     private void LimitPlayerSpeed()
@@ -129,7 +189,7 @@ public class PlayerController : MonoBehaviour
 
     private void CheckSliding()
     {
-        // Q tuşuna basıldığında slide modunu toggle et
+        // _slideKey tuşuna basıldığında slide modunu toggle et
         if (Input.GetKeyDown(_slideKey))
         {
             _isSlideModeActive = !_isSlideModeActive;
@@ -140,4 +200,11 @@ public class PlayerController : MonoBehaviour
             SetPlayerJump();
         }
     }
+
+    private Vector3 GetMovementDirection()
+    {
+        return _movementDirection.normalized;
+    }
+
+    
 }
