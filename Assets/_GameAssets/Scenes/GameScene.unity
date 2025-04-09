@@ -161,6 +161,7 @@ GameObject:
   - component: {fileID: 202558366}
   - component: {fileID: 202558369}
   - component: {fileID: 202558370}
+  - component: {fileID: 202558371}
   - component: {fileID: 202558368}
   - component: {fileID: 202558367}
   m_Layer: 0
@@ -254,7 +255,6 @@ MonoBehaviour:
   _jumpKey: 32
   _jumpForce: 8
   _jumpCooldown: 0.5
-  _airMultiplier: 0.2
   _airdrag: 0.75
   _playerHeight: 1
   _groundLayer:
@@ -276,6 +276,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a00a7291e67456b45b20a9bd791846dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &202558371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 202558365}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63ee0853be54be0478494eeb3addb09c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerAnimator: {fileID: 5696954355916840746}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -2395,7 +2408,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8241092033522339535}
   m_Layer: 0
-  m_Name: root
+  m_Name: Root
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2427,6 +2440,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4919185752815420819}
+  - component: {fileID: 5696954355916840746}
   m_Layer: 0
   m_Name: PlayerVisual
   m_TagString: Untagged
@@ -2434,6 +2448,28 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!95 &5696954355916840746
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5696954355916840745}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 0f4d84c15e5637f459f5b80cd4203531, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!4 &6080886922568134670
 Transform:
   m_ObjectHideFlags: 0

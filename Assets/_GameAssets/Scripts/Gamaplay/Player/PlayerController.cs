@@ -1,8 +1,12 @@
 using Unity.VisualScripting;
 using UnityEngine;
-
+using System;
 public class PlayerController : MonoBehaviour
 {
+
+    public event Action OnPlayerJump;
+
+
     [Header("References")]
     [SerializeField] private Transform _orientationTransform;
 
@@ -13,7 +17,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private KeyCode _jumpKey;
     [SerializeField] private float _jumpForce = 5f;
     [SerializeField] private float _jumpCooldown = 0.5f;
-    [SerializeField] private float _airMultiplier = 0.4f;
+    // [SerializeField] private float _airMultiplier = 0.4f;
     [SerializeField] private float _airdrag = 0.05f;
 
     [Header("Ground Settings")]
@@ -42,6 +46,7 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    
     private void Update()
     {
         SetInputs();
@@ -171,6 +176,7 @@ public class PlayerController : MonoBehaviour
 
     private void SetPlayerJump()
     {
+        OnPlayerJump?.Invoke(); // Jump eventini tetikle
         _canJump = false;
         _playerRigidbody.linearVelocity = new Vector3(_playerRigidbody.linearVelocity.x, 0f, _playerRigidbody.linearVelocity.z);
         _playerRigidbody.AddForce(Vector3.up * _jumpForce, ForceMode.Impulse);
