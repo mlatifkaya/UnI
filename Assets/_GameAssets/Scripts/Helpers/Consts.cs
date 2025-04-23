@@ -1,6 +1,10 @@
 
 public class Consts
 {
+    public struct SceneNames
+    {
+        public const string GAME_SCENE = "GameScene";
+    }
     public struct SetPlayerAnimations
     {
         public const string IS_MOVING = "IsMoving";
@@ -21,4 +25,6 @@ public class Consts
         public const string HOLY_WHEAT = "HolyWheat";
         public const string ROTTEN_WHEAT = "RottenWheat";
     }
+
+
 }
